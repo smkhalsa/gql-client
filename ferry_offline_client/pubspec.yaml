@@ -13,6 +13,7 @@ dependencies:
   ferry_exec: ^0.0.2
   ferry_cache: ^0.4.2
   ferry_hive_store: ^0.3.2
+  retry: 3.0.1
   ferry: ^0.9.2
   flutter: 
     sdk: flutter

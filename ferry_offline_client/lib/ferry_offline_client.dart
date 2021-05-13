@@ -17,11 +17,32 @@ import 'package:ferry_hive_store/ferry_hive_store.dart';
 import './src/offline_mutation_typed_link.dart';
 
 class OfflineClientConfig {
+  /// A callback used to customize behavior when a mutation execution results in a [LinkException].
   final LinkExceptionHandler linkExceptionHandler;
 
-  OfflineClientConfig({
+  /// A callback used to decide what to do when all retries have been attempted
+  /// with no success
+  final FutureOr<void> Function(Exception) retriesExhaustedHandler;
+
+  final bool persistOptimisticResponse;
+
+  /// if set to true then all failed offline mutations are prevent from being
+  /// removed from the queue so they can be retried
+  final bool dequeueOnError;
+
+  /// This is an optional function a user can pass in to specify whether or not
+  /// a type of error should cause the offline mutation should be removed
+  /// from the queue
+  final bool Function(OperationResponse) shouldDequeueRequest;
+
+  const OfflineClientConfig({
     this.linkExceptionHandler,
+    this.retriesExhaustedHandler,
+    this.shouldDequeueRequest,
+    this.dequeueOnError = true,
+    this.persistOptimisticResponse = false,
   });
+
 }
 
 class OfflineClient extends TypedLink {
@@ -62,8 +83,8 @@ class OfflineClient extends TypedLink {
         cache: cache,
         mutationQueueBox: mutationQueueBox,
         serializers: serializers,
-        requestController: this.requestController,
-        linkExceptionHandler: offlineConfig?.linkExceptionHandler,
+        requestController: requestController,
+        config: offlineConfig,
       ),
       if (addTypename) AddTypenameTypedLink(),
       if (updateCacheHandlers.isNotEmpty)
@@ -92,10 +113,10 @@ class OfflineClient extends TypedLink {
     @required Serializers serializers,
     OfflineClientConfig offlineConfig,
     StreamController<OperationRequest> requestController,
-    Map<String, TypePolicy> typePolicies,
-    Map<String, Function> updateCacheHandlers,
-    Map<OperationType, FetchPolicy> defaultFetchPolicies,
-    bool addTypename,
+    Map<String, TypePolicy> typePolicies = const {},
+    Map<String, Function> updateCacheHandlers = const {},
+    Map<OperationType, FetchPolicy> defaultFetchPolicies = const {},
+    bool addTypename = true,
   }) async {
     await Hive.initFlutter();
     final storeBox = await Hive.openBox<Map<String, dynamic>>('ferry_store');
