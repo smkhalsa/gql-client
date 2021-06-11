@@ -8,6 +8,7 @@ packages:
   - ferry_flutter/*
   - ferry_generator/*
   - ferry_hive_store/*
+  - ferry_serializers/*
   - ferry_store/*
   - ferry_test_graphql/*
   - normalize/*

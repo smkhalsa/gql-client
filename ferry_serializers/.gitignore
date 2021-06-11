@@ -1,0 +1,9 @@
+# Dart
+.dart_tool
+.packages
+pubspec.lock
+
+# Documentation
+doc/api
+
+build/
