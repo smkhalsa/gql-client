@@ -124,7 +124,7 @@ class UpdateCacheTypedLink extends TypedLink {
       _updateCacheHandlersStream<TData, TVars>(
     Stream<OperationResponse<TData, TVars>> stream,
   ) {
-    var runNonOptimistically = false;
+    var runNonOptimistically = true;
 
     return stream.doOnData((res) {
       final key = res.operationRequest.updateCacheHandlerKey;
@@ -146,6 +146,10 @@ class UpdateCacheTypedLink extends TypedLink {
             return;
           }
         case DataSource.Link:
+          {
+            handler(proxy, res);
+            return;
+          }
         case DataSource.Cache:
           {
             if (runNonOptimistically == false) {
